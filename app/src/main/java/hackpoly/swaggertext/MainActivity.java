@@ -1,10 +1,13 @@
 package hackpoly.swaggertext;
 
 
+import android.content.Context;
 import android.content.ContextWrapper;
 import android.os.Bundle;
+import android.renderscript.Element;
 import android.support.v7.app.ActionBarActivity;
 import android.telephony.SmsManager;
+import android.util.Base64;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -13,9 +16,13 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.ObjectInputStream;
+import java.io.OutputStreamWriter;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.PublicKey;
-
+import java.security.spec.KeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -30,15 +37,29 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         ContextWrapper c = new ContextWrapper(this);
         final String path = c.getFilesDir().toString() + "/";
+        final String publicKey = path+"publicKey.txt";
+       final String privateKey = path+"privateKey.txt";
 
         try
         {
-            Encryption e = new Encryption();
-            e.generateKey();
+
+
+            final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+            keyGen.initialize(1024);
+            final KeyPair key = keyGen.generateKeyPair();
+            OutputStreamWriter outPublic = new OutputStreamWriter(openFileOutput("public.key", Context.MODE_PRIVATE));
+            outPublic.write(keyGen.genKeyPair().getPublic().toString());
+            outPublic.flush();
+
+
+            // Saving the Private key in a file
+            OutputStreamWriter outPrivate = new OutputStreamWriter(openFileOutput("private.key", Context.MODE_PRIVATE));
+            outPrivate.write(keyGen.genKeyPair().getPrivate().toString());
+            outPrivate.flush();
         }
 catch(Exception exx)
 {
-
+    exx.printStackTrace();
 }
             buttonSend = (Button) findViewById(R.id.buttonSend);
             textPhoneNo = (EditText) findViewById(R.id.editTextPhoneNo);
@@ -57,7 +78,7 @@ catch(Exception exx)
                         SmsManager smsManager = SmsManager.getDefault();
 
                         //final String originalText = sms;
-                       ObjectInputStream inputStream = null;
+                      // ObjectInputStream inputStream = null;
                        // inputStream.defaultReadObject();
                         // Encrypt the string using the public key
 //
@@ -70,19 +91,34 @@ catch(Exception exx)
 //                        }
 //                        String everything = sb.toString();
 //                        br.close();
-
+                        File filePublicKey = new File(path + "public.key");
+                        FileInputStream fis = new FileInputStream(path + "public.key");
                         //inputStream= new FileInputStream(new File(path+Encryption.PUBLIC_KEY_FILE))) ;
-                        FileInputStream f = new FileInputStream(new File(path+Encryption.PUBLIC_KEY_FILE));
+                        byte[] encodedPublicKey = new byte[(int) filePublicKey.length()];
+                        fis.read(encodedPublicKey);
+                        fis.close();
+                        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+                       KeySpec publicKeySpec = new X509EncodedKeySpec(Base64.encode(encodedPublicKey,Base64.DEFAULT));
+
+                      // PublicKey publicKeyt = keyFactory.generatePublic(publicKeySpec);
+                        PublicKey publicKey = KeyFactory.getInstance("RSA").generatePublic(
+                               new X509EncodedKeySpec(Base64.encode(encodedPublicKey,Base64.DEFAULT)));
+
+//                        PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(
+//                                encodedPrivateKey);
+//                        PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
+
+                        //FileInputStream f = new FileInputStream(publicKey);
                        // f.close();
 
-
-                        inputStream = new ObjectInputStream(f);
+//f.read();//
+                 //       ObjectInputStream inputStream = new ObjectInputStream(f);
 
                        // f.close();
                         //inputStream.close();
                         //Object a = ;
                         //inputStream.();
-                        final PublicKey publicKey = (PublicKey) inputStream.readObject();
+                      //  final PublicKey publicKey = (PublicKey) inputStream.readObject();
                         final byte[] cipherText = Encryption.encrypt(sms, publicKey);
 
                         // Decrypt the cipher text using the private key.

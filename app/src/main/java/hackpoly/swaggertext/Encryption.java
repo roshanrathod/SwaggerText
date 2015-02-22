@@ -37,12 +37,12 @@ public class Encryption extends Activity {
      * String to hold the name of the private key file.
      */
 
-    public static String PRIVATE_KEY_FILE = "privateKey";
+    public static String PRIVATE_KEY_FILE = "privateKey.txt";
 
     /**
      * String to hold name of the public key file.
      */
-    public static String PUBLIC_KEY_FILE = "publicKey";
+    public static String PUBLIC_KEY_FILE = "publicKey.txt";
 
     /**
      * Generate key which contains a pair of private and public key using 1024
@@ -52,14 +52,13 @@ public class Encryption extends Activity {
      * @throws IOException
      * @throws FileNotFoundException
      */
-    public   void generateKey() {
+    public   void generateKey(String path) {
         try {
 
            // ContextWrapper c = new ContextWrapper(this);
           //  String path = c.getFilesDir().toString();
 
-            ContextWrapper c = new ContextWrapper(this);
-            final String path = c.getFilesDir().toString() + "/";
+
 
 
 
